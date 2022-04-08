@@ -1,27 +1,29 @@
-[WHAT] 
-pywmdockapps is the name of an GPL'd project containing one python package
-(wmdocklib) and a few python scripts.  wmdocklib will help you develop
-WindowMaker dockapps in python.  it is mostly a wrapper around the popular
-wmgeneral.c, but some new functions have been added too.
+=========
+wmdocklib
+=========
 
-wmdocklib is divided in two parts: a thin wrapper around the popular
-wmgeneral.c and a thicker pywmhelpers.py module providing more pythonic
-interface to the wmdocklib and a few additional functions (e.g.: handling
-simple configuration files).  all functions provided by these modules are
-imported in the namespace of wmdocklib so you won't need explicit importing
-of either modules: just import wmdocklib.  It is adviced to only use those
-functions provided by pywmhelpers and not touch the pywmgeneral module
-directly at all.  For information about how to use the module, see the
-documentation in pywmhelpers.py.  It is also possible to import it in the
-interactive interpreter and issue 'help(pywmhelpers)'.
+This is a library which was extracted from a pretty much dead `pywmdockapps`_
+project, and is meant to help with writing Window Maker dockapps in Python.
 
-the sample scripts are described in the examples/README 
-a small set of samples are provided.  all of them make use of the module
-pywmgeneral.
+Installation
+============
 
-[INSTALLATION]
-python ./setup install
+The installation from source expect there is a C compiler around, as well as X
+and Python headers/dev packages. It might be installed using virtualenv, or
+system wide:
 
-[CONTACT]
-Anything related to this piece of software: please open an issue here.
+.. code::shell-session
 
+   $ python setup.py install
+
+Note, that you'll need C compiler and Xorg dev package to build the C
+extension.
+
+
+
+License
+=======
+
+This work is licensed under (L)GPL license.
+
+.. _pywmdockapps: http://pywmdockapps.sourceforge.net
