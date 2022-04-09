@@ -26,14 +26,16 @@ Some changes to handle the additional event handling in pywmgeneral
 First workingish version
 """
 
-import os, re, types
-import ConfigParser
+import os
+import re
+import types
+import configparser
 
 charset_start = None
 charset_width = None
 pattern_start = None
 
-import pywmgeneral
+from wmdocklib import pywmgeneral
 defaultRGBFileList = [
     '/etc/X11/rgb.txt',
     '/usr/lib/X11/rgb.txt',
@@ -55,10 +57,10 @@ def readConfigFile(fileName, errOut):
             errOut.write(
                 'Configuration file is not readable. Using defaults.\n')
         return {}
-    cp = ConfigParser.ConfigParser()
+    cp = configparser.ConfigParser()
     try:
         cp.read(fileName)
-    except ConfigParser.Error, e:
+    except configparser.Error as e:
         if errOut:
             errOut.write('Error in configuration file:\n')
             errOut.write(str(e) + '\nUsing defaults.')
@@ -82,7 +84,7 @@ def addChar(ch, x, y, xOffset, yOffset, width, height, drawable=None):
 
     Return the (width, height) of the character painted.  (will be useful if
     we implement proportional char sets)
-    
+
     the library only supports lower ascii: 32-127.  any other will cause a
     ValueError exception.
 
@@ -95,17 +97,17 @@ def addChar(ch, x, y, xOffset, yOffset, width, height, drawable=None):
         #print ord(ch)
         #raise ValueError, "Unsupported Char: '%s'(%d)" % (ch, ord(ch))
         pass
-    
+
     # linelength is the amount of bits the character set uses on each row.
     linelength = charset_width - (charset_width % char_width)
     # pos is the horizontal index of the box containing ch.
     pos = (ord(ch)-32) * char_width
     # translate pos into chX, chY, rolling back and down each linelength
     # bits.  character definition start at row 64, column 0.
-    chY = (pos / linelength) * char_height + charset_start
-    chX = pos % linelength
-    targX = x + xOffset
-    targY = y + yOffset
+    chY = int((pos / linelength) * char_height + charset_start)
+    chX = int(pos % linelength)
+    targX = int(x + xOffset)
+    targY = int(y + yOffset)
     chW = char_width
     if ch in "',.:;":
         chW = char_twidth
@@ -117,19 +119,18 @@ def addChar(ch, x, y, xOffset, yOffset, width, height, drawable=None):
 
 def addString(s, x, y, xOffset=0, yOffset=0, width=None, height=None, drawable=None):
     """Add a string at the given x and y positions.
-    
+
     Call addChar repeatedely, so the same exception rules apply."""
     lastW = 0
     for letter in s:
-        w, h = addChar(letter, x + lastW, y, 
+        w, h = addChar(letter, x + lastW, y,
                        xOffset, yOffset, width, height,
                        drawable)
         lastW += w
-    return lastW
 
 def getVertSpacing(numLines, margin, height, yOffset):
     """Return the optimal spacing between a number of lines.
-    
+
     margin is the space we want between the first line and the top."""
     h = height - (numLines * char_height + 1) - yOffset * 2 - margin
     return h / (numLines - 1)
@@ -144,9 +145,9 @@ def readXPM(fileName):
     pixels is a list of strings.
 
     Raise IOError if we run into trouble when trying to read the file.  This
-    function has not been tested extensively.  do not try to use more than 
+    function has not been tested extensively.  do not try to use more than
     """
-    f = file(fileName, 'r')
+    f = open(fileName, 'r')
     lines = [l.rstrip('\n') for l in f.readlines()]
     s = ''.join(lines)
     res = []
@@ -179,7 +180,7 @@ def initPixmap(background=None,
                font_name='6x8',
                bg=0, fg=7,
                palette=None, debug = 0):
-    """builds and sets the pixmap of the program. 
+    """builds and sets the pixmap of the program.
 
     the (width)x(height) upper left area is the work area in which we put
     what we want to be displayed.
@@ -189,7 +190,7 @@ def initPixmap(background=None,
 
     the remaining lower area defines the character set.  this is initialized
     using the corresponding named character set.  a file with this name must
-    be found somewhere in the path.  
+    be found somewhere in the path.
 
     palette is a dictionary
     1: of integers <- [0..15] to colors.
@@ -218,7 +219,7 @@ def initPixmap(background=None,
         palette, background = readXPM(background)
 
     alter_palette, palette = palette, {}
-    for name, index in zip(basic_colors, range(16)):
+    for name, index in zip(basic_colors, list(range(16))):
         palette['%x'%index] = getColorCode(name)
         available['%x'%index] = False
     palette[' '] = 'None'
@@ -229,7 +230,7 @@ def initPixmap(background=None,
     if alter_palette is not None:
         # alter_palette contains 0..15/chr -> 'name'/'#hex'
         # interpret that as chr -> '#hex'
-        for k,v in alter_palette.items():
+        for k,v in list(alter_palette.items()):
             if isinstance(k, int):
                 k = '%x' % k
             k = k[0]
@@ -248,7 +249,7 @@ def initPixmap(background=None,
 
     if style == '3d': ex = '7'
     else: ex = bg
-    
+
     if background is None:
         background = [
             ' '*width
@@ -261,7 +262,7 @@ def initPixmap(background=None,
             ] + [
             ' '*width for item in range(margin)
             ]
-    elif isinstance(background, types.ListType) and not isinstance(background[0], types.StringTypes):
+    elif isinstance(background, list) and not isinstance(background[0], (str,)):
         nbackground = [[' ']*width for i in range(height)]
         for ((left, top),(right, bottom)) in background:
             for x in range(left, right+1):
@@ -293,7 +294,7 @@ def initPixmap(background=None,
         thinwidth = int(m.groupdict().get('t') or width)
 
         replace = []
-        for code, value in font_palette.items():
+        for code, value in list(font_palette.items()):
             if available[code]:
                 continue
             if palette[code] != font_palette[code]:
@@ -301,7 +302,7 @@ def initPixmap(background=None,
                 available[newcode] = False
                 replace.append((code, newcode))
         for code, newcode in replace:
-            for row, i in zip(fontdef,range(len(fontdef))):
+            for row, i in zip(fontdef,list(range(len(fontdef)))):
                 fontdef[i] = row.replace(code, newcode)
             font_palette[newcode] = font_palette[code]
             del font_palette[code]
@@ -323,21 +324,21 @@ def initPixmap(background=None,
         fg_vec = [f-b for (f,b) in zip(fg_point,bg_point)]
 
         new_font_palette = {}
-        for k, colorName in font_palette.items():
+        for k, colorName in list(font_palette.items()):
             if colorName == 'None':
                 continue
             origColor = getColorCode(colorName)[1:]
             origRgb = [int(origColor[i*2:i*2+2],16)/256. for i in range(3)]
             intensity = sum(origRgb) / 3
             newRgb = [i * intensity + base for i,base in zip(fg_vec, bg_point)]
-            new_font_palette[k] = '#'+''.join(["%02x"%i for i in newRgb])
-        
+            new_font_palette[k] = '#'+''.join(["%02x"% int(i) for i in newRgb])
+
         return new_font_palette
-        
+
     global char_width, char_height, char_twidth
     char_width, char_height, char_twidth, fontdef, font_palette = readFont(font_name)
     font_palette = calibrateFontPalette(font_palette, palette[fg], palette[bg])
-    
+
     palette.update(font_palette)
 
     global charset_start, charset_width
@@ -346,16 +347,16 @@ def initPixmap(background=None,
 
     xpmwidth = max(len(background[0]), len(patterns[0]), len(fontdef[0]))
     xpmheight = len(background)+len(patterns)+len(fontdef)
-    
+
     xpm = [
         '%s %s %d 1' % (xpmwidth, xpmheight, len(palette)),
         ] + [
         '%s\tc %s' % (k,v)
-        for k,v in palette.items()
+        for k,v in list(palette.items())
         if v == 'None'
         ] + [
         '%s\tc %s' % (k,v)
-        for k,v in palette.items()
+        for k,v in list(palette.items())
         if v != 'None'
         ] + [
         item+' '*(xpmwidth-len(item))
@@ -365,16 +366,16 @@ def initPixmap(background=None,
         for line in fontdef
         ]
     if debug:
-        print '/* XPM */\nstatic char *_x_[] = {'
+        print('/* XPM */\nstatic char *_x_[] = {')
         for item in xpm:
-            print '"%s",' % item
-        print '};'
+            print(('"%s",' % item))
+        print('};')
     pywmgeneral.includePixmap(xpm)
     return char_width, char_height
 
 def openXwindow(argv, w, h):
     """Open the X window of given width and height.
-    
+
     The XBM mask is here created from the upper left rectangle of the
     XPM using the given width and height."""
     pywmgeneral.openXwindow(len(argv), argv, w, h)
@@ -389,6 +390,9 @@ def redrawXY(x, y):
 
 def copyXPMArea(sourceX, sourceY, width, height, targetX, targetY):
     """Copy an area of the global XPM."""
+    (sourceX, sourceY, width, height, targetX,
+     targetY) = (int(sourceX), int(sourceY), int(width), int(height),
+                 int(targetX), int(targetY))
     if width > 0 or height > 0:
         pywmgeneral.copyXPMArea(sourceX, sourceY, width, height,
                                 targetX, targetY)
@@ -421,7 +425,7 @@ def getEvent():
 
 def getColorCode(colorName, rgbFileName=None):
     """Convert a color to rgb code usable in an xpm.
-    
+
     We use the file rgbFileName for looking up the colors. Return None
     if we find no match. The rgbFileName should be like the one found in
     /usr/lib/X11R6/rgb.txt on most sytems.
@@ -437,7 +441,7 @@ def getColorCode(colorName, rgbFileName=None):
     if rgbFileName is None:
         raise ValueError('cannot find rgb file')
 
-    f = file(rgbFileName, 'r')
+    f = open(rgbFileName, 'r')
     lines = f.readlines()
     f.close()
     for l in lines:
@@ -456,4 +460,4 @@ def getColorCode(colorName, rgbFileName=None):
                     rgbstr = '#%02x%02x%02x' % (r,g,b)
                     return rgbstr
     return None
- 
+
