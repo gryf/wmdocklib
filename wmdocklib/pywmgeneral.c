@@ -83,11 +83,11 @@ char **pyListToStrs(PyObject *l) {
         s = PySequence_GetItem(l, i);
         if (s == NULL)
             return NULL; /* Shouldn't happen. */
-        if (!PyString_Check(s)) {
+        if (!PyUnicode_Check(s)) {
             PyErr_SetString(PyExc_TypeError, "String expected.");
             return NULL;
         }
-        target[i] = PyString_AsString(s);
+        target[i] = PyUnicode_AsUTF8(s);
     }
     return target;
 }
@@ -379,7 +379,6 @@ static PyMethodDef Drawable_methods[] = {
 
 static PyTypeObject drawable_DrawableType = {
     PyObject_HEAD_INIT(NULL)
-    0,                         /*ob_size*/
     "pyywmgeneral.Drawable",             /*tp_name*/
     sizeof(drawable_DrawableObject),             /*tp_basicsize*/
     0,                         /*tp_itemsize*/
@@ -807,23 +806,33 @@ void openXwindow(int argc, char *argv[], char *pixmap_bytes[], char *pixmask_bit
     }
 }
 
+static struct PyModuleDef pywmgeneral = {
+    PyModuleDef_HEAD_INIT,
+    "pywmgeneral",
+    "base C module for wmdocklib",
+    -1,
+    PyWmgeneralMethods
+};
+
 #ifndef PyMODINIT_FUNC	/* declarations for DLL import/export */
 #define PyMODINIT_FUNC void
 #endif
 
 PyMODINIT_FUNC
-initpywmgeneral(void) {
+PyInit_pywmgeneral(void) {
     PyObject* m;
   
     drawable_DrawableType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&drawable_DrawableType) < 0)
-        return;
+        return NULL;
   
-    m = Py_InitModule3("pywmgeneral", PyWmgeneralMethods,
-                       "base C module for wmdocklib");
+    m = PyModule_Create(&pywmgeneral);
+
     if (m == NULL)
-        return;
+        return NULL;
 
     Py_INCREF(&drawable_DrawableType);
+    /* Py_XINCREF(&drawable_DrawableType); */
     PyModule_AddObject(m, "Drawable", (PyObject *)&drawable_DrawableType);
+    return m;
 }
