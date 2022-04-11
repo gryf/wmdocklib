@@ -63,7 +63,7 @@ Pixmap       pixmask;
 Atom         deleteAtom; /* Added 2003-06-24 for graceful shutdown. */
 
 /*****************************************************************************/
-/* The Python stuff                                                          */ 
+/* The Python stuff                                                          */
 /*****************************************************************************/
 static char **pixmap;  /* Global pixmap, we only support one of these */
 static char *maskBits; /* Global maskbits, also only 1 supported */
@@ -204,27 +204,27 @@ pywmgeneral_checkForEvents(PyObject *self, PyObject *args) {
           RedrawWindow();
           break;
 
-        case EnterNotify: 
+        case EnterNotify:
         case LeaveNotify:
           /* needed by KeyPress/release, otherwise events go to parent. */
           XSetInputFocus(display, PointerRoot, RevertToParent, CurrentTime);
-          break; 
+          break;
 
         case KeyPress:
             count = XLookupString((XKeyEvent*)&event, buffer, bufsize, &keysym, &dummy);
             buffer[count] = '\0';
-            
-            return Py_BuildValue("{s:s,s:i,s:i,s:s}", 
+
+            return Py_BuildValue("{s:s,s:i,s:i,s:s}",
                                  "type", "keypress",
-                                 "state", event.xkey.state, 
+                                 "state", event.xkey.state,
                                  "keycode", event.xkey.keycode,
                                  "button", buffer);
 
         case ButtonPress:
         case ButtonRelease:
-          return Py_BuildValue("{s:s,s:i,s:i,s:i}", 
+          return Py_BuildValue("{s:s,s:i,s:i,s:i}",
                                "type", event.type==ButtonPress?"buttonpress":"buttonrelease",
-                               "button", event.xbutton.button, 
+                               "button", event.xbutton.button,
                                "x", event.xbutton.x, "y", event.xbutton.y);
 
         case ClientMessage:
@@ -289,7 +289,7 @@ Drawable_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
       self->width = 0;
       self->height = 0;
   }
-  
+
   return (PyObject *)self;
 }
 
@@ -298,7 +298,7 @@ Drawable_init(drawable_DrawableObject *self, PyObject *args, PyObject *kwds)
 {
     unsigned int w, h;
     if (! PyArg_ParseTuple(args, "ii", &w, &h))
-        return -1; 
+        return -1;
     if (!wmgen.attributes.depth) {
         PyErr_SetString(PyExc_RuntimeError, "X client must be initialized first.");
         return -1;
@@ -309,7 +309,7 @@ Drawable_init(drawable_DrawableObject *self, PyObject *args, PyObject *kwds)
     self->has_drawable = 1;
     self->width = w;
     self->height = h;
-    self->drawable = XCreatePixmap(display, wmgen.pixmap, 
+    self->drawable = XCreatePixmap(display, wmgen.pixmap,
                                    w, h, wmgen.attributes.depth);
 
     return 0;
@@ -327,7 +327,7 @@ Drawable_xCopyAreaToWindow(drawable_DrawableObject *self, PyObject *args, PyObje
 {
     unsigned int src_x, src_y, width, height, dst_x, dst_y;
     if (! PyArg_ParseTuple(args, "iiiiii", &src_x, &src_y, &width, &height, &dst_x, &dst_y))
-        return NULL; 
+        return NULL;
 
     XCopyArea(display, self->drawable, wmgen.pixmap, NormalGC,
               src_x, src_y, width, height, dst_x, dst_y);
@@ -339,7 +339,7 @@ Drawable_xCopyAreaToWindow(drawable_DrawableObject *self, PyObject *args, PyObje
 static PyObject *
 Drawable_xClear(drawable_DrawableObject *self, PyObject *args, PyObject *kwds)
 {
-    XFillRectangle(display, self->drawable, NormalGC, 
+    XFillRectangle(display, self->drawable, NormalGC,
                    0, 0, self->width, self->height);
 
     Py_INCREF(Py_None);
@@ -351,7 +351,7 @@ Drawable_xCopyAreaFromWindow(drawable_DrawableObject *self, PyObject *args, PyOb
 {
     unsigned int src_x, src_y, width, height, dst_x, dst_y;
     if (! PyArg_ParseTuple(args, "iiiiii", &src_x, &src_y, &width, &height, &dst_x, &dst_y))
-        return NULL; 
+        return NULL;
 
     XCopyArea(display, wmgen.pixmap, self->drawable, NormalGC,
               src_x, src_y, width, height, dst_x, dst_y);
@@ -468,7 +468,7 @@ static void GetXPM(XpmIcon *wmgen, char *pixmap_bytes[]) {
 
     err = XpmCreatePixmapFromData(display, Root, pixmap_bytes, &(wmgen->pixmap),
                     &(wmgen->mask), &(wmgen->attributes));
-    
+
     if (err != XpmSuccess) {
       fprintf(stderr, "Not enough free colorcells. %d\n", err);
         exit(1);
@@ -515,9 +515,9 @@ static int flush_expose(Window w) {
 \*******************************************************************************/
 
 void RedrawWindow(void) {
-    
+
     flush_expose(iconwin);
-    XCopyArea(display, wmgen.pixmap, iconwin, NormalGC, 
+    XCopyArea(display, wmgen.pixmap, iconwin, NormalGC,
               0,0, wmgen.attributes.width, wmgen.attributes.height, 0,0);
     flush_expose(win);
     XCopyArea(display, wmgen.pixmap, win, NormalGC,
@@ -529,9 +529,9 @@ void RedrawWindow(void) {
 \*******************************************************************************/
 
 void RedrawWindowXY(int x, int y) {
-    
+
     flush_expose(iconwin);
-    XCopyArea(display, wmgen.pixmap, iconwin, NormalGC, 
+    XCopyArea(display, wmgen.pixmap, iconwin, NormalGC,
                 x,y, wmgen.attributes.width, wmgen.attributes.height, 0,0);
     flush_expose(win);
     XCopyArea(display, wmgen.pixmap, win, NormalGC,
@@ -587,7 +587,7 @@ void createXBMfromXPM(char *xbm, char **xpm, int sx, int sy) {
     unsigned char    bwrite;
     int        bcount;
     int     curpixel;
-    
+
     sscanf(*xpm, "%d %d %d %d", &width, &height, &numcol, &depth);
 
 
@@ -596,7 +596,7 @@ void createXBMfromXPM(char *xbm, char **xpm, int sx, int sy) {
         zero <<=8;
         zero |= xpm[1][k];
     }
-        
+
     for (i=numcol+1; i < numcol+sy+1; i++) {
         bcount = 0;
         bwrite = 0;
@@ -609,7 +609,7 @@ void createXBMfromXPM(char *xbm, char **xpm, int sx, int sy) {
                 curpixel <<=8;
                 curpixel |= xpm[i][j+k];
             }
-                
+
             if ( curpixel != zero ) {
                 bwrite += 128;
             }
@@ -690,7 +690,7 @@ void openXwindow(int argc, char *argv[], char *pixmap_bytes[], char *pixmask_bit
     }
 
     if (!(display = XOpenDisplay(display_name))) {
-        fprintf(stderr, "%s: can't open display %s\n", 
+        fprintf(stderr, "%s: can't open display %s\n",
                 wname, XDisplayName(display_name));
         exit(1);
     }
@@ -715,13 +715,13 @@ void openXwindow(int argc, char *argv[], char *pixmap_bytes[], char *pixmask_bit
 
     mysizehints.width = 64;
     mysizehints.height = 64;
-        
+
     win = XCreateSimpleWindow(display, Root, mysizehints.x, mysizehints.y,
-                              mysizehints.width, mysizehints.height, borderwidth, 
+                              mysizehints.width, mysizehints.height, borderwidth,
                               fore_pix, back_pix);
-    
+
     iconwin = XCreateSimpleWindow(display, win, mysizehints.x, mysizehints.y,
-                                  mysizehints.width, mysizehints.height, borderwidth, 
+                                  mysizehints.width, mysizehints.height, borderwidth,
                                   fore_pix, back_pix);
 
 
@@ -737,8 +737,8 @@ void openXwindow(int argc, char *argv[], char *pixmap_bytes[], char *pixmask_bit
     XSetClassHint(display, win, &classHint);
 
     XSelectInput(display, win,
-                 ExposureMask | 
-                 ButtonPressMask | 
+                 ExposureMask |
+                 ButtonPressMask |
                  ButtonReleaseMask |	/* added ButtonReleaseMask *charkins*/
                  KeyPressMask |           /* Try this to get keyboard working */
                  PointerMotionMask |
@@ -746,9 +746,9 @@ void openXwindow(int argc, char *argv[], char *pixmap_bytes[], char *pixmask_bit
                  LeaveWindowMask |
                  StructureNotifyMask |
                  EnterWindowMask );
-    XSelectInput(display, iconwin, 
-                 ExposureMask | 
-                 ButtonPressMask | 
+    XSelectInput(display, iconwin,
+                 ExposureMask |
+                 ButtonPressMask |
                  ButtonReleaseMask |	/* added ButtonReleaseMask *charkins*/
                  KeyPressMask |           /* Try this to get keyboard working */
                  PointerMotionMask |
@@ -756,8 +756,8 @@ void openXwindow(int argc, char *argv[], char *pixmap_bytes[], char *pixmask_bit
                  LeaveWindowMask |
                  StructureNotifyMask |
                  EnterWindowMask );
-                 //ButtonPressMask | ButtonReleaseMask | KeyPressMask | KeyReleaseMask | 
-                 //ExposureMask | 
+                 //ButtonPressMask | ButtonReleaseMask | KeyPressMask | KeyReleaseMask |
+                 //ExposureMask |
                  //FocusChangeMask | EnterWindowMask |
                  //PointerMotionMask | StructureNotifyMask);
 
@@ -769,7 +769,7 @@ void openXwindow(int argc, char *argv[], char *pixmap_bytes[], char *pixmask_bit
     XSetWMName(display, win, &name);
 
     /* Create GC for drawing */
-    
+
     gcm = GCForeground | GCBackground | GCGraphicsExposures;
     gcv.foreground = fore_pix;
     gcv.background = back_pix;
@@ -821,11 +821,11 @@ static struct PyModuleDef pywmgeneral = {
 PyMODINIT_FUNC
 PyInit_pywmgeneral(void) {
     PyObject* m;
-  
+
     drawable_DrawableType.tp_new = PyType_GenericNew;
     if (PyType_Ready(&drawable_DrawableType) < 0)
         return NULL;
-  
+
     m = PyModule_Create(&pywmgeneral);
 
     if (m == NULL)
