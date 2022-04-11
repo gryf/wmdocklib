@@ -1,2 +1,2 @@
-include *.txt
-include */*.py */*.c */*.h */sample.py*rc */README */*.xpm
+include *.rst
+include */*.py */*.c */*.h
