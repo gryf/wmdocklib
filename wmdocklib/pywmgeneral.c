@@ -246,21 +246,21 @@ pywmgeneral_checkForEvents(PyObject *self, PyObject *args) {
 }
 
 static PyMethodDef PyWmgeneralMethods[] = {
-    {"openXwindow", pywmgeneral_openXwindow, METH_VARARGS,
+    {"open_xwindow", pywmgeneral_openXwindow, METH_VARARGS,
         "Open the X window containing everything."},
-    {"includePixmap", pywmgeneral_includePixmap, METH_VARARGS,
+    {"include_pixmap", pywmgeneral_includePixmap, METH_VARARGS,
         "Set the global pixmap that will be used as a mask and for everything else."},
-    {"redrawWindow", pywmgeneral_redrawWindow, METH_VARARGS,
+    {"redraw_window", pywmgeneral_redrawWindow, METH_VARARGS,
         "Redraw the window."},
-    {"redrawWindowXY", pywmgeneral_redrawWindowXY, METH_VARARGS,
-        "Redraw a give region of the window."},
-    {"addMouseRegion", pywmgeneral_addMouseRegion, METH_VARARGS,
+    {"redraw_window_xy", pywmgeneral_redrawWindowXY, METH_VARARGS,
+        "Redraw a given region of the window."},
+    {"add_mouse_region", pywmgeneral_addMouseRegion, METH_VARARGS,
         "Add a mouse region with a given index."},
-    {"checkMouseRegion", pywmgeneral_checkMouseRegion, METH_VARARGS,
+    {"check_mouse_region", pywmgeneral_checkMouseRegion, METH_VARARGS,
         "Check if the given coordinates are in any mouse region."},
-    {"copyXPMArea", pywmgeneral_copyXPMArea, METH_VARARGS,
+    {"copy_xpm_area", pywmgeneral_copyXPMArea, METH_VARARGS,
         "Copy an area of the global XPM."},
-    {"checkForEvents", pywmgeneral_checkForEvents, METH_VARARGS,
+    {"check_for_events", pywmgeneral_checkForEvents, METH_VARARGS,
         "Check for some Xevents"},
     {NULL, NULL, 0, NULL}
 };
