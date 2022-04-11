@@ -379,8 +379,8 @@ static PyMethodDef Drawable_methods[] = {
 
 static PyTypeObject drawable_DrawableType = {
     PyObject_HEAD_INIT(NULL)
-    "pyywmgeneral.Drawable",             /*tp_name*/
-    sizeof(drawable_DrawableObject),             /*tp_basicsize*/
+    "pyywmgeneral.Drawable",   /*tp_name*/
+    sizeof(drawable_DrawableObject), /*tp_basicsize*/
     0,                         /*tp_itemsize*/
     (destructor)Drawable_dealloc, /*tp_dealloc*/
     0,                         /*tp_print*/
@@ -398,24 +398,24 @@ static PyTypeObject drawable_DrawableType = {
     0,                         /*tp_setattro*/
     0,                         /*tp_as_buffer*/
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /*tp_flags*/
-    "Drawable objects",           /* tp_doc */
-    0,		               /* tp_traverse */
-    0,		               /* tp_clear */
-    0,		               /* tp_richcompare */
-    0,		               /* tp_weaklistoffset */
-    0,		               /* tp_iter */
-    0,		               /* tp_iternext */
-    Drawable_methods,             /* tp_methods */
-    Drawable_members,             /* tp_members */
+    "Drawable objects",        /* tp_doc */
+    0,                         /* tp_traverse */
+    0,                         /* tp_clear */
+    0,                         /* tp_richcompare */
+    0,                         /* tp_weaklistoffset */
+    0,                         /* tp_iter */
+    0,                         /* tp_iternext */
+    Drawable_methods,          /* tp_methods */
+    Drawable_members,          /* tp_members */
     0,                         /* tp_getset */
     0,                         /* tp_base */
     0,                         /* tp_dict */
     0,                         /* tp_descr_get */
     0,                         /* tp_descr_set */
     0,                         /* tp_dictoffset */
-    (initproc)Drawable_init,      /* tp_init */
+    (initproc)Drawable_init,   /* tp_init */
     0,                         /* tp_alloc */
-    Drawable_new,                 /* tp_new */
+    Drawable_new,              /* tp_new */
 };
 
 /*
