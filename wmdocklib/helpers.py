@@ -158,8 +158,7 @@ def read_xpm(filename):
 
 
 def init_pixmap(background=None, patterns=None, style='3d', width=64,
-                height=64, margin=3, font_name=None, bg="black", fg="gray",
-                palette=None):
+                height=64, margin=3, font_name=None, bg="black", palette=None):
     """builds and sets the pixmap of the program.
 
     the (width)x(height) upper left area is the work area in which we put
@@ -220,7 +219,7 @@ def init_pixmap(background=None, patterns=None, style='3d', width=64,
     bevel = get_unique_key('#bebebe')
     palette[bevel] = '#bebebe'
 
-    # handle bg/fg colors
+    # handle bg color
     bg = normalize_color(bg)
     key = get_unique_key(palette)
     palette[key] = bg
