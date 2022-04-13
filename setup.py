@@ -15,7 +15,7 @@ MODULE1 = Extension('wmdocklib.pywmgeneral',
 with open('README.rst') as fobj:
     LONG_DESC = fobj.read()
 
-setup(name="pywmdockapps",
+setup(name="wmdocklib",
       version="1.23",
       description="Library for creating dockapps for Window Maker/AfterStep",
       long_description=LONG_DESC,
