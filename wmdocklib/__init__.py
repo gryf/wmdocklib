@@ -7,14 +7,18 @@ class DockApp:
     width = 64
     height = 64
     x_offset = 4
-    y_offset = 4
+    y_offset = 3
     palette = {"1": "black",
                "2": "white"}
+    background_color = 'black'
 
     def __init__(self, args=None):
-        self._args = args
-        self._charset_start = None
-        self._charset_width = None
+        self.args = args
+        self.charset_start = None
+        self.charset_width = None
+        self.char_width = None
+        self.char_height = None
+        self.font = ''
 
     def check_for_events(self):
         event = helpers.get_event()
