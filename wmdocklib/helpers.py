@@ -51,8 +51,8 @@ def read_font(font_name):
     if not res:
         raise ValueError("can't infer font size from name (does not "
                          "contain wxh)")
-    width = res.groupdict().get('w')
-    height = res.groupdict().get('h')
+    width = int(res.groupdict().get('w'))
+    height = int(res.groupdict().get('h'))
 
     return width, height, fontdef, font_palette
 
@@ -280,7 +280,7 @@ def init_pixmap(background=None, patterns=None, style='3d', width=64,
         ]
 
     pywmgeneral.include_pixmap(xpm)
-    return char_width, char_height
+    return char_width, char_height, charset_start, charset_width
 
 
 def open_xwindow(argv, w, h):
