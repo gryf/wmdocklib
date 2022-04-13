@@ -26,3 +26,16 @@ class DockApp:
             if event['type'] == 'destroynotify':
                 sys.exit(0)
             event = helpers.get_event()
+
+    def prepare_pixmaps(self, background=None, patterns=None, style='3d',
+                        margin=3):
+
+        dockapp_size = (self.width, self.height)
+
+        (self.char_width, self.char_height, self.charset_start,
+         self.charset_width) = helpers.init_pixmap(background, patterns,
+                                                   style, dockapp_size[0],
+                                                   dockapp_size[1], margin,
+                                                   self.font,
+                                                   self.background_color,
+                                                   self.palette)
