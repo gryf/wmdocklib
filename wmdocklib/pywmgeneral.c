@@ -27,7 +27,7 @@
  *
  * Thanks to Martijn Pieterse for createing the original wmgeneral.c
  *
-*/
+ */
 
 #include <Python.h>
 #include "structmember.h"
@@ -200,44 +200,44 @@ pywmgeneral_checkForEvents(PyObject *self, PyObject *args) {
         XNextEvent(display, &event);
         switch(event.type) {
 
-        case Expose:
-          RedrawWindow();
-          break;
+            case Expose:
+                RedrawWindow();
+                break;
 
-        case EnterNotify:
-        case LeaveNotify:
-          /* needed by KeyPress/release, otherwise events go to parent. */
-          XSetInputFocus(display, PointerRoot, RevertToParent, CurrentTime);
-          break;
+            case EnterNotify:
+            case LeaveNotify:
+                /* needed by KeyPress/release, otherwise events go to parent. */
+                XSetInputFocus(display, PointerRoot, RevertToParent, CurrentTime);
+                break;
 
-        case KeyPress:
-            count = XLookupString((XKeyEvent*)&event, buffer, bufsize, &keysym, &dummy);
-            buffer[count] = '\0';
+            case KeyPress:
+                count = XLookupString((XKeyEvent*)&event, buffer, bufsize, &keysym, &dummy);
+                buffer[count] = '\0';
 
-            return Py_BuildValue("{s:s,s:i,s:i,s:s}",
-                                 "type", "keypress",
-                                 "state", event.xkey.state,
-                                 "keycode", event.xkey.keycode,
-                                 "button", buffer);
+                return Py_BuildValue("{s:s,s:i,s:i,s:s}",
+                                     "type", "keypress",
+                                     "state", event.xkey.state,
+                                     "keycode", event.xkey.keycode,
+                                     "button", buffer);
 
-        case ButtonPress:
-        case ButtonRelease:
-          return Py_BuildValue("{s:s,s:i,s:i,s:i}",
-                               "type", event.type==ButtonPress?"buttonpress":"buttonrelease",
-                               "button", event.xbutton.button,
-                               "x", event.xbutton.x, "y", event.xbutton.y);
+            case ButtonPress:
+            case ButtonRelease:
+                return Py_BuildValue("{s:s,s:i,s:i,s:i}",
+                                     "type", event.type==ButtonPress?"buttonpress":"buttonrelease",
+                                     "button", event.xbutton.button,
+                                     "x", event.xbutton.x, "y", event.xbutton.y);
 
-        case ClientMessage:
-          if((Atom)event.xclient.data.l[0] == deleteAtom) {
-            XCloseDisplay(display);
-            return Py_BuildValue("{s:s}", "type", "destroynotify");
-          }
-          break;
+            case ClientMessage:
+                if((Atom)event.xclient.data.l[0] == deleteAtom) {
+                    XCloseDisplay(display);
+                    return Py_BuildValue("{s:s}", "type", "destroynotify");
+                }
+                break;
 
-        case DestroyNotify:
-          /* This seems to never happen, why? */
-          XCloseDisplay(display);
-          return Py_BuildValue("{s:s}", "type", "destroynotify");
+            case DestroyNotify:
+                /* This seems to never happen, why? */
+                XCloseDisplay(display);
+                return Py_BuildValue("{s:s}", "type", "destroynotify");
 
         }
     }
@@ -281,16 +281,16 @@ typedef struct {
 static PyObject *
 Drawable_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-  drawable_DrawableObject *self;
+    drawable_DrawableObject *self;
 
-  self = (drawable_DrawableObject *)type->tp_alloc(type, 0);
-  if (self != NULL) {
-      self->has_drawable = 0;
-      self->width = 0;
-      self->height = 0;
-  }
+    self = (drawable_DrawableObject *)type->tp_alloc(type, 0);
+    if (self != NULL) {
+        self->has_drawable = 0;
+        self->width = 0;
+        self->height = 0;
+    }
 
-  return (PyObject *)self;
+    return (PyObject *)self;
 }
 
 static int
@@ -470,7 +470,7 @@ static void GetXPM(XpmIcon *wmgen, char *pixmap_bytes[]) {
                     &(wmgen->mask), &(wmgen->attributes));
 
     if (err != XpmSuccess) {
-      fprintf(stderr, "Not enough free colorcells. %d\n", err);
+        fprintf(stderr, "Not enough free colorcells. %d\n", err);
         exit(1);
     }
 }
@@ -652,8 +652,8 @@ void copyXBMArea(int x, int y, int sx, int sy, int dx, int dy) {
 
 void setMaskXY(int x, int y) {
 
-     XShapeCombineMask(display, win, ShapeBounding, x, y, pixmask, ShapeSet);
-     XShapeCombineMask(display, iconwin, ShapeBounding, x, y, pixmask, ShapeSet);
+    XShapeCombineMask(display, win, ShapeBounding, x, y, pixmask, ShapeSet);
+    XShapeCombineMask(display, iconwin, ShapeBounding, x, y, pixmask, ShapeSet);
 }
 
 /*******************************************************************************\
