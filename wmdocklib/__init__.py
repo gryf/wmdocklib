@@ -50,6 +50,14 @@ class DockApp:
             self.redraw()
             time.sleep(0.3)
 
+    def open_xwindow(self):
+        """Open the X window of given width and height.
+
+        The XBM mask is here created from the upper left rectangle of the
+        XPM using the given width and height."""
+        pywmgeneral.open_xwindow(len(sys.argv), sys.argv, self.width,
+                                 self.height)
+
     def prepare_pixmaps(self, background=None, patterns=None, style='3d',
                         margin=3):
 

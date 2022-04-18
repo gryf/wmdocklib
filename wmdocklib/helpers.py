@@ -283,14 +283,6 @@ def init_pixmap(background=None, patterns=None, style='3d', width=64,
     return char_width, char_height, charset_start, charset_width
 
 
-def open_xwindow(argv, w, h):
-    """Open the X window of given width and height.
-
-    The XBM mask is here created from the upper left rectangle of the
-    XPM using the given width and height."""
-    pywmgeneral.open_xwindow(len(argv), argv, w, h)
-
-
 def redraw():
     """Redraw the window."""
     pywmgeneral.redraw_window()
