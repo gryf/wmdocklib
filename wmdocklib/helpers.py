@@ -283,11 +283,6 @@ def init_pixmap(background=None, patterns=None, style='3d', width=64,
     return char_width, char_height, charset_start, charset_width
 
 
-def redraw():
-    """Redraw the window."""
-    pywmgeneral.redraw_window()
-
-
 def redraw_xy(x, y):
     """Redraw a given region of the window."""
     pywmgeneral.redraw_window_xy(x, y)

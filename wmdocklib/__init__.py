@@ -70,3 +70,6 @@ class DockApp:
                                                    self.font,
                                                    self.background_color,
                                                    self.palette)
+
+    def redraw(self):
+        pywmgeneral.redraw_window()
