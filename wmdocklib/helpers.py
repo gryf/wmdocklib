@@ -42,6 +42,27 @@ RGB_FILE_LIST = ['/etc/X11/rgb.txt',
                  '/usr/lib/X11/rgb.txt']
 
 
+def get_font_char_size(font_name):
+    """Return char size infered from font name.
+
+    It is expected, that font should have char size included in the file name,
+    i.e.
+
+      charset_8x12_big_black.xpm
+      6x8-small.xpm
+
+    so the pattern searched here would be WxH, where W and H are char width
+    and height (including interval between chars and lines) and x is literally
+    x.
+    """
+    res = re.match(r'.*?(?P<w>[0-9]+)(?:\((?P<t>[0-9]+)\))?x(?P<h>[0-9]+).*',
+                   font_name)
+    if not res:
+        return None, None
+
+    return int(res.groupdict().get('w')), int(res.groupdict().get('h'))
+
+
 def get_center_start_pos(string, areaWidth, offset):
     """Get the x starting position if we want to paint string centred."""
     w = len(string) * char_width
