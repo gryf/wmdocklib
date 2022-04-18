@@ -185,5 +185,40 @@ class DockApp:
 
         pywmgeneral.include_pixmap(xpm)
 
+    def add_char(self, ch, x, y, drawable=None):
+        """Paint the character ch at position x, y in the window.
+
+        if the character being painted falls partly out of the boundary, it
+        will be clipped without causing an exception.  this works even if the
+        character starts out of the boundary.
+        """
+        # linelength is the amount of bits the character set uses on each row.
+        linelength = self.charset_width - (self.charset_width %
+                                           self.char_width)
+        # pos is the horizontal index of the box containing ch.
+        pos = (ord(ch)-32) * self.char_width
+        # translate pos into ch_x, ch_y, rolling back and down each linelength
+        # bits.  character definition start at row 64, column 0.
+        ch_y = int((pos / linelength)) * self.char_height + self.charset_start
+        ch_x = pos % linelength
+        target_x = x + self.x_offset
+        target_y = y + self.y_offset
+
+        if drawable is None:
+            pywmgeneral.copy_xpm_area(ch_x, ch_y, self.char_width,
+                                      self.char_height, target_x, target_y)
+        else:
+            drawable.xCopyAreaFromWindow(ch_x, ch_y, self.char_width,
+                                         self.char_height, target_x, target_y)
+
+    def add_string(self, string, x, y, drawable=None):
+        """Add a string at the given x and y positions.
+
+        Call add_char repeatedely, so the same exception rules apply."""
+        last_width = 0
+        for letter in string:
+            self.add_char(letter, x + last_width, y, drawable)
+            last_width += self.char_width
+
     def redraw(self):
         pywmgeneral.redraw_window()

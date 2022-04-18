@@ -64,52 +64,6 @@ def get_center_start_pos(string, areaWidth, offset):
     return (text_area - w) / 2
 
 
-def add_char(ch, x, y, x_offset, y_offset, width, height, drawable=None):
-    """Paint the character ch at position x, y in the window.
-
-    Return the (width, height) of the character painted.  (will be useful if
-    we implement proportional char sets)
-
-    the library only supports lower ascii: 32-127.  any other will cause a
-    ValueError exception.
-
-    if the character being painted falls partly out of the boundary, it will
-    be clipped without causing an exception.  this works even if the
-    character starts out of the boundary.
-    """
-    # linelength is the amount of bits the character set uses on each row.
-    linelength = charset_width - (charset_width % char_width)
-    # pos is the horizontal index of the box containing ch.
-    pos = (ord(ch)-32) * char_width
-    # translate pos into ch_x, ch_y, rolling back and down each linelength
-    # bits.  character definition start at row 64, column 0.
-    ch_y = int((pos / linelength)) * char_height + charset_start
-    ch_x = pos % linelength
-    target_x = x + x_offset
-    target_y = y + y_offset
-    char_width
-
-    if drawable is None:
-        pywmgeneral.copy_xpm_area(ch_x, ch_y, char_width, char_height,
-                                  target_x, target_y)
-    else:
-        drawable.xCopyAreaFromWindow(ch_x, ch_y, char_width, char_height,
-                                     target_x, target_y)
-    return char_width
-
-
-def add_string(string, x, y, x_offset=0, y_offset=0, width=None, height=None,
-               drawable=None):
-    """Add a string at the given x and y positions.
-
-    Call add_char repeatedely, so the same exception rules apply."""
-    last_width = 0
-    for letter in string:
-        width = add_char(letter, x + last_width, y, x_offset, y_offset,
-                         width, height, drawable)
-        last_width += width
-
-
 def get_vertical_spacing(num_lines, margin, height, y_offset):
     """Return the optimal spacing between a number of lines.
 
