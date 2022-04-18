@@ -1,16 +1,22 @@
+import time
 import sys
 
 from wmdocklib import helpers
+from wmdocklib import pywmgeneral
 
 
 class DockApp:
     width = 64
     height = 64
-    x_offset = 4
+    margin = 3
+    x_offset = 3
     y_offset = 3
     palette = {"1": "black",
                "2": "white"}
     background_color = 'black'
+    style = '3d'
+    bevel_color = '#bebebe'
+    font_dimentions = None
 
     def __init__(self, args=None):
         self.args = args
@@ -26,6 +32,21 @@ class DockApp:
             if event['type'] == 'destroynotify':
                 sys.exit(0)
             event = helpers.get_event()
+
+    def run(self):
+        self.prepare_pixmaps()
+        self.open_xwindow()
+
+        try:
+            self.main_loop()
+        except KeyboardInterrupt:
+            pass
+
+    def main_loop(self):
+        while True:
+            self.check_for_events()
+            self.redraw()
+            time.sleep(0.3)
 
     def prepare_pixmaps(self, background=None, patterns=None, style='3d',
                         margin=3):
