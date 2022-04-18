@@ -42,21 +42,6 @@ RGB_FILE_LIST = ['/etc/X11/rgb.txt',
                  '/usr/lib/X11/rgb.txt']
 
 
-def read_font(font_name):
-    # read xpm, return cell_size, definition and palette.
-    font_palette, fontdef = read_xpm(font_name)
-
-    res = re.match(r'.*?(?P<w>[0-9]+)(?:\((?P<t>[0-9]+)\))?x(?P<h>[0-9]+).*',
-                   font_name)
-    if not res:
-        raise ValueError("can't infer font size from name (does not "
-                         "contain wxh)")
-    width = int(res.groupdict().get('w'))
-    height = int(res.groupdict().get('h'))
-
-    return width, height, fontdef, font_palette
-
-
 def get_center_start_pos(string, areaWidth, offset):
     """Get the x starting position if we want to paint string centred."""
     w = len(string) * char_width
