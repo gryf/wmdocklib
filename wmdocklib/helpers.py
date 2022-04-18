@@ -118,8 +118,8 @@ def get_vertical_spacing(num_lines, margin, height, y_offset):
     return h / (num_lines - 1)
 
 
-def read_xpm(filename):
-    """Read the xpm in filename.
+def read_xpm(obj):
+    """Read the xpm in filename or treat object as a string with XPM data.
 
     Return the pair (palette, pixels).
 
@@ -129,8 +129,11 @@ def read_xpm(filename):
     Raise IOError if we run into trouble when trying to read the file.  This
     function has not been tested extensively.  do not try to use more than
     """
-    with open(filename, 'r') as fobj:
-        lines = fobj.read().split('\n')
+    if obj.startswith('/* XPM */'):
+        lines = [line for line in obj.split('\n')]
+    else:
+        with open(obj, 'r') as fobj:
+            lines = fobj.read().split('\n')
 
     string = ''.join(lines)
     data = []
@@ -155,132 +158,6 @@ def read_xpm(filename):
         palette[colorChar] = color_name
     data = data[1 + int(data[0].split(' ')[2]):]
     return palette, data
-
-
-def init_pixmap(background=None, patterns=None, style='3d', width=64,
-                height=64, margin=3, font_name=None, bg="black", palette=None):
-    """builds and sets the pixmap of the program.
-
-    the (width)x(height) upper left area is the work area in which we put
-    what we want to be displayed.
-
-    the remaining upper right area contains patterns that can be used for
-    blanking/resetting portions of the displayed area.
-
-    the remaining lower area defines the character set.  this is initialized
-    using the corresponding named character set.  a file with this name must
-    be found somewhere in the path.
-
-    palette is a dictionary
-    1: of integers <- [0..15] to colors.
-    2: of single chars to colors.
-
-    a default palette is provided, and can be silently overwritten with the
-    one passed as parameter.
-
-    The XBM mask is created out of the XPM.
-    """
-
-    def get_unique_key(dict_to_check):
-        for char in range(40, 126):
-            char = chr(char)
-            if char not in dict_to_check:
-                return char
-
-    def normalize_color(color):
-        if color.startswith('#'):
-            return color
-        else:
-            return get_color_code(color)
-
-    # Read provided xpm file with font definition
-    global char_width, char_height
-
-    char_width, char_height, fontdef, font_palette = read_font(font_name)
-    palette_values = {v: k for k, v in font_palette.items()}
-
-    if not palette:
-        palette = font_palette
-    else:
-        # make sure we don't overwrite font colors
-        for key, color in palette.items():
-            color = normalize_color(color)
-            if color in palette_values:
-                continue
-            if key not in font_palette:
-                font_palette[key] = color
-            else:
-                new_key = get_unique_key(font_palette)
-                font_palette[new_key] = color
-
-    palette_values = {v: k for k, v in font_palette.items()}
-    palette = font_palette
-
-    bevel = get_unique_key('#bebebe')
-    palette[bevel] = '#bebebe'
-
-    # handle bg color
-    bg = normalize_color(bg)
-    key = get_unique_key(palette)
-    palette[key] = bg
-    bg = key
-
-    if patterns is None:
-        patterns = [bg * width] * height
-
-    if style == '3d':
-        ex = bevel
-    else:
-        ex = bg
-
-    if background is None:
-        background = [' ' * width for item in range(margin)] + \
-                [' ' * margin +
-                 bg * (width - 2 * margin - 1) +
-                 ex + ' ' * (margin)
-                 for item in range(margin, height-margin-1)] + \
-                [' ' * margin + ex * (width - 2 * margin) + ' ' * (margin)] + \
-                [' ' * width for item in range(margin)]
-
-    elif isinstance(background, list) and not isinstance(background[0], str):
-        nbackground = [[' ']*width for i in range(height)]
-        for ((left, top), (right, bottom)) in background:
-            for x in range(left, right+1):
-                for y in range(top, bottom):
-                    if x < right:
-                        nbackground[y][x] = bg
-                    else:
-                        nbackground[y][x] = ex
-                nbackground[bottom][x] = ex
-        background = [''.join(item) for item in nbackground]
-
-    global charset_start, charset_width
-    charset_start = height + len(patterns)
-    charset_width = len(fontdef[0])
-
-    xpmwidth = max(len(background[0]), len(patterns[0]), len(fontdef[0]))
-    xpmheight = len(background) + len(patterns) + len(fontdef)
-
-    xpm = [
-        '%s %s %d 1' % (xpmwidth, xpmheight, len(palette)),
-        ] + [
-        '%s\tc %s' % (k, v)
-        for k,v in list(palette.items())
-        if v == 'None'
-        ] + [
-        '%s\tc %s' % (k,v)
-        for k,v in list(palette.items())
-        if v != 'None'
-        ] + [
-        item+' '*(xpmwidth-len(item))
-        for item in background + patterns
-        ] + [
-        line + ' '*(xpmwidth-len(line))
-        for line in fontdef
-        ]
-
-    pywmgeneral.include_pixmap(xpm)
-    return char_width, char_height, charset_start, charset_width
 
 
 def redraw_xy(x, y):
@@ -365,3 +242,17 @@ def get_color_code(color_name, rgb_fname=None):
 
                     return f'#{r:02x}{g:02x}{b:02x}'
     return None
+
+
+def get_unique_key(dict_to_check):
+    for char in range(40, 126):
+        char = chr(char)
+        if char not in dict_to_check:
+            return char
+
+
+def normalize_color(color):
+    if color.startswith('#'):
+        return color
+    else:
+        return get_color_code(color)
