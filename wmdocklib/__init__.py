@@ -21,10 +21,12 @@ class DockApp:
     def __init__(self, args=None):
         self.args = args
         self.charset_start = None
-        self.charset_width = None
+        self.charset_width = 0
         self.char_width = None
         self.char_height = None
-        self.font = ''
+        self.font = None
+        self.background = None
+        self.patterns = None
 
     def check_for_events(self):
         event = helpers.get_event()
