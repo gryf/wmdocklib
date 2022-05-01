@@ -63,19 +63,19 @@ def get_font_char_size(font_name):
     return int(res.groupdict().get('w')), int(res.groupdict().get('h'))
 
 
-def get_center_start_pos(string, areaWidth, offset):
+def get_center_start_pos(string, area_width, char_width, offset):
     """Get the x starting position if we want to paint string centred."""
-    w = len(string) * char_width
-    text_area = areaWidth - offset * 2 - 1
-    return (text_area - w) / 2
+    string_width = len(string) * char_width
+    text_area = area_width - offset * 2 - 1
+    return (text_area - string_width) / 2
 
 
-def get_vertical_spacing(num_lines, margin, height, y_offset):
+def get_vertical_spacing(num_lines, margin, char_height, height, y_offset):
     """Return the optimal spacing between a number of lines.
 
     margin is the space we want between the first line and the top."""
-    h = height - (num_lines * char_height + 1) - y_offset * 2 - margin
-    return h / (num_lines - 1)
+    height = height - (num_lines * char_height + 1) - y_offset * 2 - margin
+    return height / (num_lines - 1)
 
 
 def read_xpm(obj):
@@ -90,7 +90,7 @@ def read_xpm(obj):
     function has not been tested extensively.  do not try to use more than
     """
     if obj.startswith('/* XPM */'):
-        lines = [line for line in obj.split('\n')]
+        lines = obj.split('\n')
     else:
         with open(obj, 'r') as fobj:
             lines = fobj.read().split('\n')
@@ -108,14 +108,14 @@ def read_xpm(obj):
         break
 
     palette = {}
-    colorCount = int(data[0].split(' ')[2])
-    charsPerColor = int(data[0].split(' ')[3])
-    assert(charsPerColor == 1)
+    color_count = int(data[0].split(' ')[2])
+    chars_per_color = int(data[0].split(' ')[3])
+    assert chars_per_color == 1
 
-    for i in range(colorCount):
-        colorChar = data[i+1][0]
+    for i in range(color_count):
+        color_char = data[i+1][0]
         color_name = data[i+1][1:].split()[1]
-        palette[colorChar] = color_name
+        palette[color_char] = color_name
     data = data[1 + int(data[0].split(' ')[2]):]
     return palette, data
 
@@ -135,7 +135,8 @@ def copy_xpm_area(sourceX, sourceY, width, height, targetX, targetY):
                                   targetX, targetY)
 
 
-def add_mouse_region(index, left, top, right=None, bottom=None, width=None, height=None):
+def add_mouse_region(index, left, top, right=None, bottom=None, width=None,
+                     height=None):
     """Add a mouse region in the window."""
     if right is bottom is None:
         right = left + width
