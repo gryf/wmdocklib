@@ -33,7 +33,7 @@ class DockApp:
         while event is not None:
             if event['type'] == 'destroynotify':
                 sys.exit(0)
-            event = helpers.get_event()
+            return event
 
     def run(self):
         self.prepare_pixmaps()
@@ -85,24 +85,36 @@ class DockApp:
         font_width = 0
         font_height = 0
 
+        if self.background:
+            palette, background = helpers.read_xpm(self.background)
+
         if self.font:
             # Read provided xpm file with font definition
-            palette, fontdef = helpers.read_xpm(self.font)
+            font_palette, fontdef = helpers.read_xpm(self.font)
             font_width = self.charset_width = len(fontdef[0])
             font_height = len(fontdef)
+            if not palette:
+                palette = font_palette
+            else:
+                # merge background and font_palette and remap characters
+                palette, fontdef = helpers.merge_palettes(palette,
+                                                          font_palette,
+                                                          fontdef)
 
-            if self.font_dimentions is None:
+            # user provided font dimension tuple have precedence
+            if self.font_dimentions is not None:
+                self.char_width, self.char_height = self.font_dimentions
+            else:
                 (self.char_width,
                  self.char_height) = helpers.get_font_char_size(self.font)
-            else:
-                self.char_width, self.char_height = self.font_dimentions
 
             if self.char_width is None:
                 # font filename doesn't provide hints regarding font size
                 raise ValueError('Cannot infer font size either from font '
                                  'name (does not contain wxh), or from '
                                  'font_dimentions attribute')
-        else:
+
+        if not palette:
             palette[' '] = 'None'
 
         palette_values = {v: k for k, v in palette.items()}
@@ -119,29 +131,28 @@ class DockApp:
                     new_key = helpers.get_unique_key(palette)
                     palette[new_key] = color
 
-        palette_values = {v: k for k, v in palette.items()}
-
         bevel = helpers.get_unique_key(palette)
         palette[bevel] = self.bevel_color
 
         # handle bg color
-        bg = helpers.normalize_color(self.background_color)
+        bg_color = helpers.normalize_color(self.background_color)
         key = helpers.get_unique_key(palette)
-        palette[key] = bg
-        bg = key
+        palette[key] = bg_color
+        bg_color = key
 
         if patterns is None:
-            patterns = [bg * self.width] * self.height
+            patterns = [bg_color * self.width] * self.height
 
         if self.style == '3d':
             ex = bevel
         else:
-            ex = bg
+            ex = bg_color
 
         if self.background is None:
-            self.background = (
+            background = (
                 [' ' * self.width for item in range(self.margin)] +
-                [' ' * self.margin + bg * (self.width - 2 * self.margin - 1) +
+                [' ' * self.margin +
+                 bg_color * (self.width - 2 * self.margin - 1) +
                  ex + ' ' * (self.margin)
                  for item in range(self.margin,
                                    self.height - self.margin - 1)] +
@@ -149,23 +160,10 @@ class DockApp:
                  ' ' * (self.margin)] +
                 [' ' * self.width for item in range(self.margin)])
 
-        elif isinstance(self.background,
-                        list) and not isinstance(self.background[0], str):
-            nbackground = [[' '] * self.width for i in range(self.height)]
-            for ((left, top), (right, bottom)) in self.background:
-                for x in range(left, right+1):
-                    for y in range(top, bottom):
-                        if x < right:
-                            nbackground[y][x] = bg
-                        else:
-                            nbackground[y][x] = ex
-                    nbackground[bottom][x] = ex
-            self.background = [''.join(item) for item in nbackground]
-
         self.charset_start = self.height + len(patterns)
 
-        xpmwidth = max(len(self.background[0]), len(patterns[0]), font_width)
-        xpmheight = len(self.background) + len(patterns) + font_height
+        xpmwidth = max(len(background[0]), len(patterns[0]), font_width)
+        xpmheight = len(background) + len(patterns) + font_height
 
         xpm = ([f'{xpmwidth} {xpmheight} {len(palette)} 1'] +
                [f'{k}\tc {v}'
@@ -173,7 +171,7 @@ class DockApp:
                [f'{k}\tc {v}'
                 for k, v in list(palette.items()) if v != 'None'] +
                [item + ' ' * (xpmwidth - len(item))
-                for item in self.background + patterns])
+                for item in background + patterns])
         if self.font:
             xpm += [line + ' ' * (xpmwidth - len(line)) for line in fontdef]
 
