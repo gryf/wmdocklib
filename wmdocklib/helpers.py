@@ -217,3 +217,67 @@ def normalize_color(color):
         return color
     else:
         return get_color_code(color)
+
+
+def merge_palettes(pal1, pal2, bitmap_list):
+    """
+    Merge two palettes, with preference of the first one, make apropriate char
+    changes in the bitmap_list. Returns new palette and corrected bitmap.
+    """
+    rerun = False
+    for char, color in pal2.copy().items():
+        if color == 'xxxx':
+            # ignore replaced chars
+            continue
+
+        if pal1.get(char) == color:
+            # perfect match no need to do anything
+            continue
+
+        if char not in pal1:
+            # there is no color defined for the char, simply add
+            # it to the palette
+            pal1[char] = color
+            continue
+
+        # There is mismatch color for a char
+
+        # find out, if color exists under different key
+        new_char = {v: k for k, v in pal1.items()}.get(color)
+        if new_char:
+            if new_char in pal2 and pal2[new_char] != 'xxxx':
+                # we have a clash - char contain different color, change it to
+                # somethig
+                all_chars = pal1.copy()
+                all_chars.update(pal2)
+                sub = get_unique_key(all_chars)
+                temp = []
+                for line in bitmap_list:
+                    temp.append(line.replace(new_char, sub))
+                bitmap_list = temp
+                pal2[sub] = pal2[new_char]
+                pal2[new_char] = "xxxx"
+                rerun = True
+            else:
+                # color not found, add new replacement
+                temp = []
+                for line in bitmap_list:
+                    temp.append(line.replace(char, new_char))
+                bitmap_list = temp
+        elif char in pal1:
+            # color not found, check if the char already exists in first
+            # palette
+            all_chars = pal1.copy()
+            all_chars.update(pal2)
+            sub = get_unique_key(all_chars)
+            temp = []
+            for line in bitmap_list:
+                temp.append(line.replace(char, sub))
+            bitmap_list = temp
+            pal2[sub] = pal2[char]
+            pal2[char] = "xxxx"
+            rerun = True
+
+    if rerun:
+        pal1, bitmap_list = merge_palettes(pal1, pal2, bitmap_list)
+    return pal1, bitmap_list
