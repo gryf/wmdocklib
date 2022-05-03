@@ -122,6 +122,53 @@ will do.
 Method ``redraw()`` will trigger entire window to be refreshed.
 
 
+Lowlevel module
+===============
+
+There is a C module called ``pywmgeneral``, which exposes couple of functions,
+which are useful building custom dockapps.
+
+- ``open_xwindow`` - this function is responsible for creating an application
+  window, with all the wm hints set to appropriate values, so that we can get
+  docked app in Window Maker or borderless window in most of other window
+  managers. This method should be run after ``include_pixmap`` is called, since
+  (any) bitmap is expected to be a part of the app. It accepts four arguments
+  - ``argcount`` - number of arguments in next argument list
+  - ``argument list`` - there are two arguments which can be passed to this
+    function ``-geometry`` and ``-disply``. All the rest will be ignored, so
+    it's safe to pass ``len(sys.argv)`` and ``sys.argv`` as a *argcount* and
+    *argument list* respectively.
+  - ``width`` - application width, whatever value is accepted. By default
+    ``64``.
+  - ``height`` - application height, whatever value is accepted. By default
+    ``64``.
+- ``include_pixmap`` - function which loads and picture in XPM format as a
+  string. The only argument here is a list of lines of the XPM image.
+- ``redraw_window`` - repaint the window content.
+- ``redraw_window_xy`` - repaint the window region counting from the provided
+  coordinates (*x* and *y*) to the end of the application width and height.
+- ``add_mouse_region`` - define a region for checking mouse events. This
+  function may be repeated with definition for several regions using index.
+  Arguments:
+  - ``index`` - simple region integer identifier
+  - ``left``, ``top``, ``right``, ``bottom`` - coordinates for the area
+- ``check_mouse_region`` - function for check if certain defined mouse region
+  has any event. It returns id of the mouse region, or -1 if there were no
+  events within provided coordinates.
+- ``copy_xpm_area`` - copy XPM area from provided coordinates to new location.
+  Arguments:
+  - ``source x``, ``source y`` - coordinate of the area to be copied from
+  - ``source width``, ``source height`` - dimension of the block to be copied
+  - ``target x``, ``targed y`` - destination coordinates.
+- ``check_for_events`` - check for events. Return ``None`` if there is no
+  events, or dictionary with information about type of the event. Currently
+  supported events are as follows:
+  - ``keypress``
+  - ``buttonpress``
+  - ``buttonrelease``
+  - ``destroynotify``
+
+
 License
 =======
 

@@ -1,5 +1,5 @@
-import time
 import sys
+import time
 
 from wmdocklib import helpers
 from wmdocklib import pywmgeneral
