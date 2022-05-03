@@ -11,22 +11,15 @@ class DockApp:
     width = 64
     height = 64
     margin = 3
-    x_offset = 3
-    y_offset = 3
     palette = {"1": "black",
                "2": "white"}
     background_color = 'black'
     style = '3d'
     bevel_color = '#bebebe'
-    font_dimentions = None
 
     def __init__(self, args=None):
         self.args = args
-        self.charset_start = None
-        self.charset_width = 0
-        self.char_width = None
-        self.char_height = None
-        self.font = None
+        self.fonts = []
         self.background = None
         self.patterns = None
         self._debug = False
@@ -64,17 +57,18 @@ class DockApp:
     def prepare_pixmaps(self):
         """builds and sets the pixmap of the program.
 
-        the (width)x(height) upper left area is the work area in which we put
-        what we want to be displayed.
+        The (width)x(height) upper left area is the work area in which we put
+        what we want to be displayed. Also, nothing prevents us from putting
+        anything on the right of that image and do the copying from there.
 
-        the remaining upper right area contains patterns that can be used for
+        The remaining upper right area contains patterns that can be used for
         blanking/resetting portions of the displayed area.
 
-        the remaining lower area defines the character set. this is initialized
-        using the corresponding named character set. a file with this name must
-        be found somewhere in the path.
+        The remaining lower area defines the character sets. This is
+        initialized using the corresponding named character set. Fonts
+        definition are holded by corresponding instances of BitmapFonts class.
 
-        palette is a dictionary
+        Palette is a dictionary
         1: of integers <- [0..15] to colors.
         2: of single chars to colors.
 
@@ -85,37 +79,22 @@ class DockApp:
         """
         palette = {}
         patterns = self.patterns
-        font_width = 0
-        font_height = 0
+        fonts = []
 
         if self.background:
             palette, background = helpers.read_xpm(self.background)
 
-        if self.font:
-            # Read provided xpm file with font definition
-            font_palette, fontdef = helpers.read_xpm(self.font)
-            font_width = self.charset_width = len(fontdef[0])
-            font_height = len(fontdef)
-            if not palette:
-                palette = font_palette
-            else:
-                # merge background and font_palette and remap characters
-                palette, fontdef = helpers.merge_palettes(palette,
-                                                          font_palette,
-                                                          fontdef)
-
-            # user provided font dimension tuple have precedence
-            if self.font_dimentions is not None:
-                self.char_width, self.char_height = self.font_dimentions
-            else:
-                (self.char_width,
-                 self.char_height) = helpers.get_font_char_size(self.font)
-
-            if self.char_width is None:
-                # font filename doesn't provide hints regarding font size
-                raise ValueError('Cannot infer font size either from font '
-                                 'name (does not contain wxh), or from '
-                                 'font_dimentions attribute')
+        if self.fonts:
+            for font in self.fonts:
+                if not palette:
+                    palette = font.palette
+                    fonts.append(font.bitmap)
+                else:
+                    # merge background and font_palette and remap characters
+                    palette, fontdef = helpers.merge_palettes(palette,
+                                                              font.palette,
+                                                              font.bitmap)
+                    fonts.append(fontdef)
 
         if not palette:
             palette[' '] = 'None'
@@ -163,10 +142,15 @@ class DockApp:
                  ' ' * (self.margin)] +
                 [' ' * self.width for item in range(self.margin)])
 
-        self.charset_start = self.height + len(patterns)
+        charset_start = self.height + len(patterns)
+        for font in self.fonts:
+            font.update(charset_start)
+            charset_start += font.charset_height
 
-        xpmwidth = max(len(background[0]), len(patterns[0]), font_width)
-        xpmheight = len(background) + len(patterns) + font_height
+        xpmwidth = max(len(background[0]), len(patterns[0]),
+                       max([f.charset_width for f in self.fonts]))
+        xpmheight = (len(background) + len(patterns) +
+                     sum([f.charset_height for f in self.fonts]))
 
         xpm = ([f'{xpmwidth} {xpmheight} {len(palette)} 1'] +
                [f'{k}\tc {v}'
@@ -175,8 +159,9 @@ class DockApp:
                 for k, v in list(palette.items()) if v != 'None'] +
                [item + ' ' * (xpmwidth - len(item))
                 for item in background + patterns])
-        if self.font:
-            xpm += [line + ' ' * (xpmwidth - len(line)) for line in fontdef]
+        if self.fonts:
+            xpm += [f"{line:{xpmwidth}}" for x in self.fonts
+                    for line in x.bitmap]
 
         if self._debug:
             fd, fname = tempfile.mkstemp(suffix='.xpm')
@@ -190,6 +175,41 @@ class DockApp:
 
         pywmgeneral.include_pixmap(xpm)
 
+    def redraw(self):
+        pywmgeneral.redraw_window()
+
+
+class BitmapFonts:
+    """
+    A class for representing a character set.
+    """
+    x_offset = 3
+    y_offset = 3
+
+    def __init__(self, font_data, dimensions=None):
+        """
+        Load and initialize font data. font_data might be either string.
+        """
+        self.palette = None
+        self.bitmap = None
+        self.charset_width = None
+        self.charset_height = None
+        self.charset_start = None
+        self.width = 0
+        self.height = 0
+        self.font_dimentions = (0, 0)
+        if dimensions:
+            self.font_dimentions = dimensions
+        self._load_font(font_data)
+        self._set_font_size(font_data)
+
+    def update(self, charset_start):
+        """
+        Update information on font position in merged pixmap, so that methods
+        add_string/add_char can calculate char position correctly.
+        """
+        self.charset_start = charset_start
+
     def add_char(self, ch, x, y, drawable=None):
         """Paint the character ch at position x, y in the window.
 
@@ -199,22 +219,22 @@ class DockApp:
         """
         # linelength is the amount of bits the character set uses on each row.
         linelength = self.charset_width - (self.charset_width %
-                                           self.char_width)
+                                           self.width)
         # pos is the horizontal index of the box containing ch.
-        pos = (ord(ch)-32) * self.char_width
+        pos = (ord(ch)-32) * self.width
         # translate pos into ch_x, ch_y, rolling back and down each linelength
         # bits.  character definition start at row 64, column 0.
-        ch_y = int((pos / linelength)) * self.char_height + self.charset_start
+        ch_y = int((pos / linelength)) * self.height + self.charset_start
         ch_x = pos % linelength
         target_x = x + self.x_offset
         target_y = y + self.y_offset
 
         if drawable is None:
-            pywmgeneral.copy_xpm_area(ch_x, ch_y, self.char_width,
-                                      self.char_height, target_x, target_y)
+            pywmgeneral.copy_xpm_area(ch_x, ch_y, self.width,
+                                      self.height, target_x, target_y)
         else:
-            drawable.xCopyAreaFromWindow(ch_x, ch_y, self.char_width,
-                                         self.char_height, target_x, target_y)
+            drawable.xCopyAreaFromWindow(ch_x, ch_y, self.width,
+                                         self.height, target_x, target_y)
 
     def add_string(self, string, x, y, drawable=None):
         """Add a string at the given x and y positions.
@@ -223,7 +243,21 @@ class DockApp:
         last_width = 0
         for letter in string:
             self.add_char(letter, x + last_width, y, drawable)
-            last_width += self.char_width
+            last_width += self.width
 
-    def redraw(self):
-        pywmgeneral.redraw_window()
+    def _set_font_size(self, font_data):
+        if self.font_dimentions[0]:
+            self.width, self.height = self.font_dimentions
+        else:
+            self.width, self.height = helpers.get_font_char_size(font_data)
+
+        if not self.width:
+            # font filename doesn't provide hints regarding font size
+            raise ValueError('Cannot infer font size either from font '
+                             'name (does not contain wxh), or from '
+                             'font_dimentions attribute')
+
+    def _load_font(self, font_data):
+        self.palette, self.bitmap = helpers.read_xpm(font_data)
+        self.charset_width = len(self.bitmap[0])
+        self.charset_height = len(self.bitmap)

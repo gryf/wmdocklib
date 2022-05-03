@@ -82,7 +82,7 @@ So below is the example for displaying random number:
 
        def __init__(self):
            super().__init__()
-           self.font = FONTS
+           self.fonts = [wmdocklib.BitmapFonts(FONTS, self.dimensions)]
 
        def run(self):
            self.prepare_pixmaps()
@@ -91,7 +91,7 @@ So below is the example for displaying random number:
 
        def main_loop(self):
            while True:
-               self.add_string(f'{random.randint(0, 999):3}', 1, 1)
+               self.fonts[0].add_string(f'{random.randint(0, 999):3}', 1, 1)
                self.redraw()
                time.sleep(0.1)
 
