@@ -1,4 +1,6 @@
+import os
 import sys
+import tempfile
 import time
 
 from wmdocklib import helpers
@@ -27,6 +29,7 @@ class DockApp:
         self.font = None
         self.background = None
         self.patterns = None
+        self._debug = False
 
     def check_for_events(self):
         event = helpers.get_event()
@@ -175,11 +178,15 @@ class DockApp:
         if self.font:
             xpm += [line + ' ' * (xpmwidth - len(line)) for line in fontdef]
 
-        with open('/tmp/foo.xpm', 'w') as fobj:
-            fobj.write('/* XPM */\nstatic char *_x_[] = {\n')
-            for item in xpm:
-                fobj.write(f'"{item}"\n')
-            fobj.write('};\n')
+        if self._debug:
+            fd, fname = tempfile.mkstemp(suffix='.xpm')
+            os.close(fd)
+            with open(fname, 'w') as fobj:
+                fobj.write('/* XPM */\nstatic char *_x_[] = {\n')
+                for item in xpm:
+                    fobj.write(f'"{item}"\n')
+                fobj.write('};\n')
+            print(f'Saved XPM file under {fname}.')
 
         pywmgeneral.include_pixmap(xpm)
 
