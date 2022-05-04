@@ -129,16 +129,16 @@ class DockApp:
             ex = bg_color
 
         if self.background is None:
+            sp = ' '
             background = (
-                [' ' * self.width for item in range(self.margin)] +
-                [' ' * self.margin +
-                 bg_color * (self.width - 2 * self.margin - 1) +
-                 ex + ' ' * (self.margin)
-                 for item in range(self.margin,
-                                   self.height - self.margin - 1)] +
-                [' ' * self.margin + ex * (self.width - 2 * self.margin) +
-                 ' ' * (self.margin)] +
-                [' ' * self.width for item in range(self.margin)])
+                [f'{sp:{self.width}}' for _ in range(self.margin)] +
+                [f'{sp:{self.margin}}' +
+                 bg_color * (self.width - 2 * self.margin - 1) + f'{ex}'
+                 f'{sp:{self.margin}}'
+                 for _ in range(self.margin, self.height - self.margin - 1)] +
+                [f'{sp:{self.margin}}' + ex * (self.width - 2 * self.margin) +
+                 f'{sp:{self.margin}}'] +
+                [f'{sp:{self.width}}' for _ in range(self.margin)])
 
         charset_start = self.height + len(patterns)
         for font in self.fonts:
