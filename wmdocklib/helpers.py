@@ -35,6 +35,7 @@ from wmdocklib import pywmgeneral
 charset_start = None
 charset_width = None
 
+MARKER = 'xxxxxxxxxxx'
 RGB_FILE_LIST = ['/etc/X11/rgb.txt',
                  '/usr/lib/X11/rgb.txt',
                  '/usr/share/X11/rgb.txt',
@@ -222,8 +223,10 @@ def merge_palettes(pal1, pal2, bitmap_list):
     char changes in the bitmap_list. Returns new palette and corrected bitmap.
     """
     rerun = False
-    for char, color in pal2.copy().items():
-        if color == 'xxxx':
+    for char in pal2.copy():
+        # get the color from possibly updated palette, not from the copy
+        color = pal2[char]
+        if color == MARKER:
             # ignore replaced chars
             continue
 
@@ -241,10 +244,13 @@ def merge_palettes(pal1, pal2, bitmap_list):
 
         # find out, if color exists under different key
         new_char = {v: k for k, v in pal1.items()}.get(color)
+        if pal2.get(new_char) == MARKER:
+            continue
+
         if new_char:
-            if new_char in pal2 and pal2[new_char] != 'xxxx':
+            if new_char in pal2:
                 # we have a clash - char contain different color, change it to
-                # somethig
+                # temporary marker.
                 all_chars = pal1.copy()
                 all_chars.update(pal2)
                 sub = get_unique_key(all_chars)
@@ -253,7 +259,8 @@ def merge_palettes(pal1, pal2, bitmap_list):
                     temp.append(line.replace(new_char, sub))
                 bitmap_list = temp
                 pal2[sub] = pal2[new_char]
-                pal2[new_char] = "xxxx"
+                pal2[new_char] = MARKER
+                pal2[char] = MARKER
                 rerun = True
             else:
                 # color not found, add new replacement
@@ -271,10 +278,11 @@ def merge_palettes(pal1, pal2, bitmap_list):
             for line in bitmap_list:
                 temp.append(line.replace(char, sub))
             bitmap_list = temp
-            pal2[sub] = pal2[char]
-            pal2[char] = "xxxx"
+            pal2[sub] = color
+            pal2[char] = MARKER
             rerun = True
 
     if rerun:
         pal1, bitmap_list = merge_palettes(pal1, pal2, bitmap_list)
+
     return pal1, bitmap_list
