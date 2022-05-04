@@ -81,13 +81,10 @@ def get_vertical_spacing(num_lines, margin, char_height, height, y_offset):
 def read_xpm(obj):
     """Read the xpm in filename or treat object as a string with XPM data.
 
-    Return the pair (palette, pixels).
+    Return the pair (palette, bitmap_list).
 
-    palette is a dictionary char->color (no translation attempted).
-    pixels is a list of strings.
-
-    Raise IOError if we run into trouble when trying to read the file.  This
-    function has not been tested extensively.  do not try to use more than
+    Palette is a dictionary char->color without color translation.
+    Data is a list of strings of the XPM image lines.
     """
     if obj.startswith('/* XPM */'):
         lines = obj.split('\n')
@@ -96,28 +93,28 @@ def read_xpm(obj):
             lines = fobj.read().split('\n')
 
     string = ''.join(lines)
-    data = []
+    bitmap_list = []
     while True:
         next_str_start = string.find('"')
         if next_str_start != -1:
             next_str_end = string.find('"', next_str_start + 1)
             if next_str_end != -1:
-                data.append(string[next_str_start + 1:next_str_end])
+                bitmap_list.append(string[next_str_start + 1:next_str_end])
                 string = string[next_str_end + 1:]
                 continue
         break
 
     palette = {}
-    color_count = int(data[0].split(' ')[2])
-    chars_per_color = int(data[0].split(' ')[3])
+    color_count = int(bitmap_list[0].split(' ')[2])
+    chars_per_color = int(bitmap_list[0].split(' ')[3])
     assert chars_per_color == 1
 
     for i in range(color_count):
-        color_char = data[i+1][0]
-        color_name = data[i+1][1:].split()[1]
+        color_char = bitmap_list[i+1][0]
+        color_name = bitmap_list[i+1][1:].split()[1]
         palette[color_char] = color_name
-    data = data[1 + int(data[0].split(' ')[2]):]
-    return palette, data
+    bitmap_list = bitmap_list[1 + int(bitmap_list[0].split(' ')[2]):]
+    return palette, bitmap_list
 
 
 def redraw_xy(x, y):
@@ -168,9 +165,9 @@ def get_event():
 def get_color_code(color_name, rgb_fname=None):
     """Convert a color to rgb code usable in an xpm.
 
-    We use the file rgb_fname for looking up the colors. Return None
-    if we find no match. The rgb_fname should be like the one found in
-    /usr/lib/X11R6/rgb.txt on most sytems.
+    We use the file rgb_fname for looking up the colors. Return None if we
+    find no match. The rgb_fname should be like the one found in
+    /usr/lib/X11R6/rgb.txt on most systems.
     """
     if color_name.startswith('#'):
         return color_name
@@ -182,7 +179,7 @@ def get_color_code(color_name, rgb_fname=None):
                 break
 
     if rgb_fname is None:
-        raise ValueError('cannot find rgb file')
+        raise ValueError('Cannot find RGB file')
 
     with open(rgb_fname, 'r') as fobj:
         lines = fobj.readlines()
@@ -221,8 +218,8 @@ def normalize_color(color):
 
 def merge_palettes(pal1, pal2, bitmap_list):
     """
-    Merge two palettes, with preference of the first one, make apropriate char
-    changes in the bitmap_list. Returns new palette and corrected bitmap.
+    Merge two palettes, with preference of the first one, make appropriate
+    char changes in the bitmap_list. Returns new palette and corrected bitmap.
     """
     rerun = False
     for char, color in pal2.copy().items():
