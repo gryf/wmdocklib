@@ -79,7 +79,6 @@ class DockApp:
         """
         palette = {}
         patterns = self.patterns
-        fonts = []
 
         if self.background:
             palette, background = helpers.read_xpm(self.background)
@@ -88,13 +87,12 @@ class DockApp:
             for font in self.fonts:
                 if not palette:
                     palette = font.palette
-                    fonts.append(font.bitmap)
                 else:
                     # merge background and font_palette and remap characters
                     palette, fontdef = helpers.merge_palettes(palette,
                                                               font.palette,
                                                               font.bitmap)
-                    fonts.append(fontdef)
+                    font.bitmap = fontdef
 
         if not palette:
             palette[' '] = 'None'
