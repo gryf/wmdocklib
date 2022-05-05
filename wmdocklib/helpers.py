@@ -254,10 +254,10 @@ def merge_palettes(pal1, pal2, bitmap_list):
                 all_chars = pal1.copy()
                 all_chars.update(pal2)
                 sub = get_unique_key(all_chars)
-                temp = []
-                for line in bitmap_list:
-                    temp.append(line.replace(new_char, sub))
-                bitmap_list = temp
+                # remap clashing character to the new one
+                bitmap_list = [r.replace(new_char, sub) for r in bitmap_list]
+                # and now remap character with the one found in first palette
+                bitmap_list = [r.replace(char, new_char) for r in bitmap_list]
                 pal2[sub] = pal2[new_char]
                 pal2[new_char] = MARKER
                 pal2[char] = MARKER
@@ -274,10 +274,7 @@ def merge_palettes(pal1, pal2, bitmap_list):
             all_chars = pal1.copy()
             all_chars.update(pal2)
             sub = get_unique_key(all_chars)
-            temp = []
-            for line in bitmap_list:
-                temp.append(line.replace(char, sub))
-            bitmap_list = temp
+            bitmap_list = [r.replace(char, sub) for r in bitmap_list]
             pal2[sub] = color
             pal2[char] = MARKER
             rerun = True
