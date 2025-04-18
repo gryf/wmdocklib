@@ -87,7 +87,7 @@ char **pyListToStrs(PyObject *l) {
             PyErr_SetString(PyExc_TypeError, "String expected.");
             return NULL;
         }
-        target[i] = PyUnicode_AsUTF8(s);
+        target[i] = (char *) PyUnicode_AsUTF8(s);
     }
     return target;
 }
@@ -378,7 +378,7 @@ static PyMethodDef Drawable_methods[] = {
 };
 
 static PyTypeObject drawable_DrawableType = {
-    PyObject_HEAD_INIT(NULL)
+    PyObject_HEAD_INIT(0)
     "pyywmgeneral.Drawable",   /*tp_name*/
     sizeof(drawable_DrawableObject), /*tp_basicsize*/
     0,                         /*tp_itemsize*/
