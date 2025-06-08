@@ -61,6 +61,7 @@ GC           NormalGC;
 XpmIcon      wmgen;
 Pixmap       pixmask;
 Atom         deleteAtom; /* Added 2003-06-24 for graceful shutdown. */
+Display     *display = NULL;
 
 /*****************************************************************************/
 /* The Python stuff                                                          */
@@ -245,6 +246,14 @@ pywmgeneral_checkForEvents(PyObject *self, PyObject *args) {
     return Py_None;
 }
 
+static PyObject *
+pywmgeneral_getColor(PyObject *self, PyObject *args) {
+    char *color_name;
+    if (!PyArg_ParseTuple(args, "s", &color_name))
+        return NULL;
+    return PyLong_FromLong((long) GetColor(color_name));
+}
+
 static PyMethodDef PyWmgeneralMethods[] = {
     {"open_xwindow", pywmgeneral_openXwindow, METH_VARARGS,
         "Open the X window containing everything."},
@@ -262,6 +271,8 @@ static PyMethodDef PyWmgeneralMethods[] = {
         "Copy an area of the global XPM."},
     {"check_for_events", pywmgeneral_checkForEvents, METH_VARARGS,
         "Check for some Xevents"},
+    {"get_color", pywmgeneral_getColor, METH_VARARGS,
+        "Get X color code for the provided name."},
     {NULL, NULL, 0, NULL}
 };
 
@@ -446,7 +457,7 @@ MOUSE_REGION    mouse_region[MAX_MOUSE_REGION];
 /***********************/
 
 static void GetXPM(XpmIcon *, char **);
-static Pixel GetColor(char *);
+unsigned long GetColor(char *);
 void RedrawWindow(void);
 void AddMouseRegion(int, int, int, int, int);
 int CheckMouseRegion(int, int);
@@ -479,18 +490,25 @@ static void GetXPM(XpmIcon *wmgen, char *pixmap_bytes[]) {
 |* GetColor                                                                    *|
 \*******************************************************************************/
 
-static Pixel GetColor(char *name) {
+unsigned long GetColor(char *name) {
 
-    XColor                color;
-    XWindowAttributes    attributes;
+    XColor color;
+    /* Open default display, if it is not opened already. This is needed for
+     * using this function before openXwindow is called, when display is
+     * initialized. This might select wrong X session, or segfault on not
+     * having DISPLAY env variable around, but meh. In context of this
+     * function this is best effort */
+    if (!display)
+        display = XOpenDisplay(NULL);
+    screen = DefaultScreen(display);
+    Colormap colormap = DefaultColormap(display, screen);
 
-    XGetWindowAttributes(display, Root, &attributes);
-
-    color.pixel = 0;
-    if (!XParseColor(display, attributes.colormap, name, &color)) {
+    if (!XParseColor(display, colormap, name, &color)) {
         fprintf(stderr, "wm.app: can't parse %s.\n", name);
-    } else if (!XAllocColor(display, attributes.colormap, &color)) {
+        return -1;
+    } else if (!XAllocColor(display, colormap, &color)) {
         fprintf(stderr, "wm.app: can't allocate %s.\n", name);
+        return -2;
     }
     return color.pixel;
 }

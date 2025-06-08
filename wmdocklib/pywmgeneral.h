@@ -53,6 +53,7 @@ Display		*display;
 
 void AddMouseRegion(int index, int left, int top, int right, int bottom);
 int CheckMouseRegion(int x, int y);
+unsigned long GetColor(char *);
 
 void openXwindow(int argc, char *argv[], char **, char *, int, int);
 void RedrawWindow(void);

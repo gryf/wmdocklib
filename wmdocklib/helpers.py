@@ -26,7 +26,6 @@ Some changes to handle the additional event handling in pywmgeneral
 First workingish version
 """
 
-import os
 import re
 
 from wmdocklib import pywmgeneral
@@ -36,11 +35,6 @@ charset_start = None
 charset_width = None
 
 MARKER = 'xxxxxxxxxxx'
-RGB_FILE_LIST = ['/etc/X11/rgb.txt',
-                 '/usr/lib/X11/rgb.txt',
-                 '/usr/share/X11/rgb.txt',
-                 '/usr/X11R6/lib/X11/rgb.txt',
-                 '/usr/lib/X11/rgb.txt']
 
 
 def get_font_char_size(font_name):
@@ -163,44 +157,12 @@ def get_event():
     return pywmgeneral.check_for_events()
 
 
-def get_color_code(color_name, rgb_fname=None):
-    """Convert a color to rgb code usable in an xpm.
-
-    We use the file rgb_fname for looking up the colors. Return None if we
-    find no match. The rgb_fname should be like the one found in
-    /usr/lib/X11R6/rgb.txt on most systems.
-    """
-    if color_name.startswith('#'):
-        return color_name
-
-    if rgb_fname is None:
-        for fn in RGB_FILE_LIST:
-            if os.access(fn, os.R_OK):
-                rgb_fname = fn
-                break
-
-    if rgb_fname is None:
-        raise ValueError('Cannot find RGB file')
-
-    with open(rgb_fname, 'r') as fobj:
-        lines = fobj.readlines()
-
-    for line in lines:
-        if line[0] != '!':
-            words = line.split()
-            if len(words) > 3:
-                name = ' '.join(words[3:])
-                if color_name.lower() == name.lower():
-                    # Found the right color, get it's code
-                    try:
-                        r = int(words[0])
-                        g = int(words[1])
-                        b = int(words[2])
-                    except ValueError:
-                        continue
-
-                    return f'#{r:02x}{g:02x}{b:02x}'
-    return None
+def get_color_code(color_name):
+    """Convert a color to rgb code usable in an xpm."""
+    color = pywmgeneral.get_color(color_name)
+    if color < 0:
+        return None
+    return f"#{color:06x}"
 
 
 def get_unique_key(dict_to_check):
