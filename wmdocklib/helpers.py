@@ -117,14 +117,14 @@ def redraw_xy(x, y):
     pywmgeneral.redraw_window_xy(x, y)
 
 
-def copy_xpm_area(sourceX, sourceY, width, height, targetX, targetY):
+def copy_xpm_area(source_x, source_y, width, height, target_x, target_y):
     """Copy an area of the global XPM."""
-    (sourceX, sourceY, width, height, targetX,
-     targetY) = (int(sourceX), int(sourceY), int(width), int(height),
-                 int(targetX), int(targetY))
+    (source_x, source_y, width, height, target_x,
+     target_y) = (int(source_x), int(source_y), int(width), int(height),
+                 int(target_x), int(target_y))
     if width > 0 or height > 0:
-        pywmgeneral.copy_xpm_area(sourceX, sourceY, width, height,
-                                  targetX, targetY)
+        pywmgeneral.copy_xpm_area(source_x, source_y, width, height,
+                                  target_x, target_y)
 
 
 def add_mouse_region(index, left, top, right=None, bottom=None, width=None,
@@ -167,16 +167,17 @@ def get_color_code(color_name):
 
 def get_unique_key(dict_to_check):
     for char in range(40, 126):
-        char = chr(char)
-        if char not in dict_to_check:
-            return char
+        _char = chr(char)
+        if _char not in dict_to_check:
+            return _char
+    return None
 
 
 def normalize_color(color):
     if color.startswith('#'):
         return color
-    else:
-        return get_color_code(color)
+
+    return get_color_code(color)
 
 
 def merge_palettes(pal1, pal2, bitmap_list):
@@ -226,10 +227,7 @@ def merge_palettes(pal1, pal2, bitmap_list):
                 rerun = True
             else:
                 # color not found, add new replacement
-                temp = []
-                for line in bitmap_list:
-                    temp.append(line.replace(char, new_char))
-                bitmap_list = temp
+                bitmap_list = [x.replace(char, new_char) for x in bitmap_list]
         elif char in pal1:
             # color not found, check if the char already exists in first
             # palette
